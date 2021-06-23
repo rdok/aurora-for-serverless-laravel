@@ -41,12 +41,12 @@ deploy-laravel: config-clear npm-cleanup composer-prod
 	sam deploy \
 		--no-confirm-changeset \
 		--parameter-overrides \
-			DomainName="serverless-laravel-local.rdok.co.uk" \
+			DomainName="aurora-for-aurora-for-serverless-laravel.rdok.co.uk" \
 			WildcardCertificateARN='arn:aws:acm:us-east-1:353196159109:certificate/b7e23fbf-69a3-440f-8560-59f240f2cc09' \
 			AppKey='base64:offaTbmby+jJq+JxZlfMtjMb7BjyoNIGSj7bu49p6Zw=' \
 			BaseDomainRoute53HostedZoneId="ZSY7GT2NEDPN0" \
-			AuroraStackName='rdokos-local-serverless-laravel-aurora' \
-			CertificateStackName='rdokos-local-serverless-laravel-certificate' \
+			AuroraStackName='rdokos-local-aurora-for-serverless-laravel-aurora' \
+			CertificateStackName='rdokos-local-aurora-for-serverless-laravel-certificate' \
 			SecurityGroupId=$${SECURITY_GROUP_ID} \
 			VpcId=$${VPC_ID} \
 			SubnetIds=$${SUBNET_IDS}; \
@@ -57,14 +57,14 @@ deploy-laravel: config-clear npm-cleanup composer-prod
 deploy-storage-showcase:
 	STORAGE_BUCKET=$$(aws cloudformation describe-stacks \
 		--region eu-west-1 \
-		--stack-name 'rdokos-local-serverless-laravel' \
+		--stack-name 'rdokos-local-aurora-for-serverless-laravel' \
 		--query 'Stacks[0].Outputs[?OutputKey==`StorageBucketName`].OutputValue' \
 		--output text) && \
 	aws s3 cp $$LARAVEL_DIR/storage/app/showcase-storage-retrieval.jpg s3://$${STORAGE_BUCKET}
 
 deploy-assets:
 	ASSETS_BUCKET_NAME=$$(aws cloudformation describe-stacks  \
-		--stack-name 'rdokos-local-serverless-laravel' \
+		--stack-name 'rdokos-local-aurora-for-serverless-laravel' \
 		--query 'Stacks[0].Outputs[?OutputKey==`AssetsBucketName`].OutputValue' \
 		--output text) && \
 	cd $$LARAVEL_DIR && \
@@ -118,7 +118,7 @@ deploy-aurora:
 			SecurityGroupId=$${SECURITY_GROUP_ID} \
 			VpcId=$${VPC_ID} \
 			SubnetIds=$${SUBNET_IDS} \
-			LaravelStackName='rdokos-local-serverless-laravel'
+			LaravelStackName='rdokos-local-aurora-for-serverless-laravel'
 
 vendor:
 	docker run -u $${UID}:$${GID} -v "${LARAVEL_DIR}":/app composer:2.0 install
@@ -133,7 +133,7 @@ ${LARAVEL_DIR}/vendor:
 artisan: # command=inspire
 	LAMBDA_NAME=$$(aws cloudformation describe-stacks  \
 		--region eu-west-1 \
-		--stack-name 'rdokos-local-serverless-laravel' \
+		--stack-name 'rdokos-local-aurora-for-serverless-laravel' \
 		--query 'Stacks[0].Outputs[?OutputKey==`ArtisanLambdaName`].OutputValue' \
 		--output text) && \
 	aws lambda invoke \
@@ -146,6 +146,6 @@ artisan: # command=inspire
 	rm response.json
 
 # 	LARAVEL_SECURITY_GROUP_ID=$$(aws cloudformation describe-stacks  \
-# 		--stack-name 'rdokos-local-serverless-laravel' \
+# 		--stack-name 'rdokos-local-aurora-for-serverless-laravel' \
 # 		--query 'Stacks[0].Outputs[?OutputKey==`LaravelSecurityGroupId`].OutputValue' \
 # 		--output text) && \
