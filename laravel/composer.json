@@ -1,5 +1,5 @@
 {
-    "name": "rdok/serverless-laravel",
+    "name": "rdok/aurora-for-serverless-laravel",
     "type": "project",
     "description": "The Laravel Framework.",
     "keywords": ["framework", "laravel"],
