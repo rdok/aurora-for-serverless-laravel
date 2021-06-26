@@ -27,20 +27,20 @@ Resources:
 #      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.secretsmanager'
 #      SubnetIds: !Ref SubnetIds
 #      SecurityGroupIds: [ !Ref SecurityGroupId ]
-#  Aurora:
-#    Type: 'AWS::RDS::DBCluster'
-#    Properties:
-#      DatabaseName: main
-#      MasterUsername: !Sub '{{resolve:secretsmanager:${AuroraSecrets}:SecretString:username}}'
-#      MasterUserPassword: !Sub '{{resolve:secretsmanager:${AuroraSecrets}:SecretString:password}}'
-#      Engine: aurora-mysql
-#      EngineVersion: 5.7.12
-#      EngineMode: serverless
-#      ScalingConfiguration:
-#        AutoPause: true
-#        MinCapacity: 1
-#        MaxCapacity: 1
-#        SecondsUntilAutoPause: 300
+  Aurora:
+    Type: 'AWS::RDS::DBCluster'
+    Properties:
+      DatabaseName: main
+      MasterUsername: !Sub '{{resolve:secretsmanager:${AuroraSecrets}:SecretString:username}}'
+      MasterUserPassword: !Sub '{{resolve:secretsmanager:${AuroraSecrets}:SecretString:password}}'
+      Engine: aurora-mysql
+      EngineVersion: 5.7.12
+      EngineMode: serverless
+      ScalingConfiguration:
+        AutoPause: true
+        MinCapacity: 1
+        MaxCapacity: 1
+        SecondsUntilAutoPause: 300
 #  LinkSecretsToAurora:
 #    Type: "AWS::SecretsManager::SecretTargetAttachment"
 #    Properties:
