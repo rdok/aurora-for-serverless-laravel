@@ -74,4 +74,3 @@ jobs:
               response.json
       - name: Print artisan response
         run: python -m json.tool response.json
-
