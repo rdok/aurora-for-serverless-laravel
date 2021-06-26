@@ -76,19 +76,19 @@ Resources:
         - AWSSecretsManagerGetSecretValuePolicy:
             SecretArn:
               Fn::ImportValue: !Sub "${AuroraStackName}-AuroraSecretsARN"
-#  Artisan:
-#    Type: AWS::Serverless::Function
-#    Properties:
-#      Timeout: 300 # Artisan handles long processes. E.g. a simple migration command takes ~45 seconds
-#      Layers:
-#        - "arn:aws:lambda:eu-west-1:209497400698:layer:php-80-fpm:9"
-#        - "arn:aws:lambda:eu-west-1:209497400698:layer:console:34"
-#      Handler: artisan
-#      Policies:
-#        - S3FullAccessPolicy: { BucketName: !Ref Storage }
-#        - AWSSecretsManagerGetSecretValuePolicy:
-#            SecretArn:
-#              Fn::ImportValue: !Sub "${AuroraStackName}-AuroraSecretsARN"
+  Artisan:
+    Type: AWS::Serverless::Function
+    Properties:
+      Timeout: 300 # Artisan handles long processes. E.g. a simple migration command takes ~45 seconds
+      Layers:
+        - "arn:aws:lambda:eu-west-1:209497400698:layer:php-80-fpm:9"
+        - "arn:aws:lambda:eu-west-1:209497400698:layer:console:34"
+      Handler: artisan
+      Policies:
+        - S3FullAccessPolicy: { BucketName: !Ref Storage }
+        - AWSSecretsManagerGetSecretValuePolicy:
+            SecretArn:
+              Fn::ImportValue: !Sub "${AuroraStackName}-AuroraSecretsARN"
 #
   S3PrivateLink:
     Type: AWS::EC2::VPCEndpoint
