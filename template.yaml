@@ -49,130 +49,130 @@ Globals:
 
 Resources:
 
-  Laravel:
-    Type: AWS::Serverless::Function
-    Properties:
-      Timeout: 28 # in seconds (API Gateway has a timeout of 30 seconds)
-      Layers: ["arn:aws:lambda:eu-west-1:209497400698:layer:php-80-fpm:9"]
-      Handler: public/index.php
-      Environment:
-        Variables:
-          AWS_PUBLIC_BUCKET: !Ref Assets
-          MIX_ASSET_URL: !Join [ '', [ 'https://', !Ref DomainName, '/assets' ] ]
-          ASSET_URL: !Join [ '', [ 'https://', !Ref DomainName, '/assets' ] ]
-      Events:
-        Root:
-          Type: HttpApi
-          Properties:
-            Path: /
-            Method: ANY
-        Proxy:
-          Type: HttpApi
-          Properties:
-            Path: '/{proxy+}'
-            Method: ANY
-      Policies:
-        - S3FullAccessPolicy: { BucketName: !Ref Storage }
-        - AWSSecretsManagerGetSecretValuePolicy:
-            SecretArn:
-              Fn::ImportValue: !Sub "${AuroraStackName}-AuroraSecretsARN"
-  Artisan:
-    Type: AWS::Serverless::Function
-    Properties:
-      Timeout: 300 # Artisan handles long processes. E.g. a simple migration command takes ~45 seconds
-      Layers:
-        - "arn:aws:lambda:eu-west-1:209497400698:layer:php-80-fpm:9"
-        - "arn:aws:lambda:eu-west-1:209497400698:layer:console:34"
-      Handler: artisan
-      Policies:
-        - S3FullAccessPolicy: { BucketName: !Ref Storage }
-        - AWSSecretsManagerGetSecretValuePolicy:
-            SecretArn:
-              Fn::ImportValue: !Sub "${AuroraStackName}-AuroraSecretsARN"
-
-  S3PrivateLink:
-    Type: AWS::EC2::VPCEndpoint
-    Properties:
-      VpcId: !Ref VpcId
-      VpcEndpointType: Interface
-      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
-      SubnetIds: !Ref SubnetIds
-      SecurityGroupIds: [ !Ref SecurityGroupId ]
-  Assets:
-    Type: AWS::S3::Bucket
-  AssetsBucketPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      Bucket:
-        Ref: Assets
-      PolicyDocument:
-        Statement:
-          Effect: Allow
-          Action: s3:GetObject
-          Principal:
-            CanonicalUser: !GetAtt CDNIdentity.S3CanonicalUserId
-          Resource: !Sub "${Assets.Arn}/*"
+#  Laravel:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      Timeout: 28 # in seconds (API Gateway has a timeout of 30 seconds)
+#      Layers: ["arn:aws:lambda:eu-west-1:209497400698:layer:php-80-fpm:9"]
+#      Handler: public/index.php
+#      Environment:
+#        Variables:
+#          AWS_PUBLIC_BUCKET: !Ref Assets
+#          MIX_ASSET_URL: !Join [ '', [ 'https://', !Ref DomainName, '/assets' ] ]
+#          ASSET_URL: !Join [ '', [ 'https://', !Ref DomainName, '/assets' ] ]
+#      Events:
+#        Root:
+#          Type: HttpApi
+#          Properties:
+#            Path: /
+#            Method: ANY
+#        Proxy:
+#          Type: HttpApi
+#          Properties:
+#            Path: '/{proxy+}'
+#            Method: ANY
+#      Policies:
+#        - S3FullAccessPolicy: { BucketName: !Ref Storage }
+#        - AWSSecretsManagerGetSecretValuePolicy:
+#            SecretArn:
+#              Fn::ImportValue: !Sub "${AuroraStackName}-AuroraSecretsARN"
+#  Artisan:
+#    Type: AWS::Serverless::Function
+#    Properties:
+#      Timeout: 300 # Artisan handles long processes. E.g. a simple migration command takes ~45 seconds
+#      Layers:
+#        - "arn:aws:lambda:eu-west-1:209497400698:layer:php-80-fpm:9"
+#        - "arn:aws:lambda:eu-west-1:209497400698:layer:console:34"
+#      Handler: artisan
+#      Policies:
+#        - S3FullAccessPolicy: { BucketName: !Ref Storage }
+#        - AWSSecretsManagerGetSecretValuePolicy:
+#            SecretArn:
+#              Fn::ImportValue: !Sub "${AuroraStackName}-AuroraSecretsARN"
+#
+#  S3PrivateLink:
+#    Type: AWS::EC2::VPCEndpoint
+#    Properties:
+#      VpcId: !Ref VpcId
+#      VpcEndpointType: Interface
+#      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
+#      SubnetIds: !Ref SubnetIds
+#      SecurityGroupIds: [ !Ref SecurityGroupId ]
+#  Assets:
+#    Type: AWS::S3::Bucket
+#  AssetsBucketPolicy:
+#    Type: AWS::S3::BucketPolicy
+#    Properties:
+#      Bucket:
+#        Ref: Assets
+#      PolicyDocument:
+#        Statement:
+#          Effect: Allow
+#          Action: s3:GetObject
+#          Principal:
+#            CanonicalUser: !GetAtt CDNIdentity.S3CanonicalUserId
+#          Resource: !Sub "${Assets.Arn}/*"
   Storage:
     Type: AWS::S3::Bucket
 
-  Domain:
-    Type: AWS::Route53::RecordSet
-    Properties:
-      HostedZoneId: !Ref BaseDomainRoute53HostedZoneId
-      Name: !Ref DomainName
-      Type: A
-      AliasTarget:
-        HostedZoneId: Z2FDTNDATAQYW2
-        DNSName: !GetAtt CDN.DomainName
-  CDN:
-    Type: AWS::CloudFront::Distribution
-    Properties:
-      DistributionConfig:
-        ViewerCertificate:
-          AcmCertificateArn: !Ref WildcardCertificateARN
-          MinimumProtocolVersion: TLSv1
-          SslSupportMethod: sni-only
-        Enabled: true
-        Aliases: [!Ref DomainName]
-        Origins:
-          - Id: LaravelOriginId
-            DomainName: !Sub '${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com'
-            CustomOriginConfig:
-              OriginProtocolPolicy: 'https-only'
-          - Id: Assets
-            DomainName: !GetAtt Assets.RegionalDomainName
-            S3OriginConfig:
-              OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${CDNIdentity}"
-        DefaultCacheBehavior:
-          AllowedMethods: [ GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE ]
-          TargetOriginId: LaravelOriginId
-          ForwardedValues:
-            QueryString: true
-            Cookies:
-              Forward: all
-            # Do not forward `Host` as it messes up the API Gateway
-            Headers: ['Accept', 'Accept-Language', 'Origin', 'Referer']
-          ViewerProtocolPolicy: redirect-to-https
-        CacheBehaviors:
-          - PathPattern: 'assets/*'
-            TargetOriginId: Assets
-            AllowedMethods: [ GET, HEAD ]
-            ViewerProtocolPolicy: redirect-to-https
-            ForwardedValues: # No need for all that with assets
-              QueryString: 'false'
-              Cookies: {Forward: none}
-            Compress: true
-  CDNIdentity:
-    Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'
-    Properties:
-      CloudFrontOriginAccessIdentityConfig:
-        Comment: !Sub "${DomainName}"
-Outputs:
-  Domain:
-    Value: !Sub "https://${DomainName}"
-  AssetsBucketName:
-    Value: !Ref Assets
-  StorageBucketName:
-    Value: !Ref Storage
-  ArtisanLambdaName:
-    Value: !Ref Artisan
+#  Domain:
+#    Type: AWS::Route53::RecordSet
+#    Properties:
+#      HostedZoneId: !Ref BaseDomainRoute53HostedZoneId
+#      Name: !Ref DomainName
+#      Type: A
+#      AliasTarget:
+#        HostedZoneId: Z2FDTNDATAQYW2
+#        DNSName: !GetAtt CDN.DomainName
+#  CDN:
+#    Type: AWS::CloudFront::Distribution
+#    Properties:
+#      DistributionConfig:
+#        ViewerCertificate:
+#          AcmCertificateArn: !Ref WildcardCertificateARN
+#          MinimumProtocolVersion: TLSv1
+#          SslSupportMethod: sni-only
+#        Enabled: true
+#        Aliases: [!Ref DomainName]
+#        Origins:
+#          - Id: LaravelOriginId
+#            DomainName: !Sub '${ServerlessHttpApi}.execute-api.${AWS::Region}.amazonaws.com'
+#            CustomOriginConfig:
+#              OriginProtocolPolicy: 'https-only'
+#          - Id: Assets
+#            DomainName: !GetAtt Assets.RegionalDomainName
+#            S3OriginConfig:
+#              OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${CDNIdentity}"
+#        DefaultCacheBehavior:
+#          AllowedMethods: [ GET, HEAD, OPTIONS, PUT, POST, PATCH, DELETE ]
+#          TargetOriginId: LaravelOriginId
+#          ForwardedValues:
+#            QueryString: true
+#            Cookies:
+#              Forward: all
+#            # Do not forward `Host` as it messes up the API Gateway
+#            Headers: ['Accept', 'Accept-Language', 'Origin', 'Referer']
+#          ViewerProtocolPolicy: redirect-to-https
+#        CacheBehaviors:
+#          - PathPattern: 'assets/*'
+#            TargetOriginId: Assets
+#            AllowedMethods: [ GET, HEAD ]
+#            ViewerProtocolPolicy: redirect-to-https
+#            ForwardedValues: # No need for all that with assets
+#              QueryString: 'false'
+#              Cookies: {Forward: none}
+#            Compress: true
+#  CDNIdentity:
+#    Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'
+#    Properties:
+#      CloudFrontOriginAccessIdentityConfig:
+#        Comment: !Sub "${DomainName}"
+#Outputs:
+#  Domain:
+#    Value: !Sub "https://${DomainName}"
+#  AssetsBucketName:
+#    Value: !Ref Assets
+#  StorageBucketName:
+#    Value: !Ref Storage
+#  ArtisanLambdaName:
+#    Value: !Ref Artisan
