@@ -51,12 +51,13 @@ jobs:
           echo ::set-output name=cicd-bucket-laravel::"${ORG}-${ENVIRONMENT}-cicd-${AWS_DEFAULT_REGION1}"
 
           AWS_SESSION_TOKEN=$(aws sts assume-role \
+            --output text \
             --role-arn $AWS_ROLE_ARN \
             --role-session-name cicd-access \
             --query "Credentials.SessionToken")
           echo "AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}" >> $GITHUB_ENV
-          echo "::add-mask::${AWS_SESSION_TOKEN}"
-          echo ${AWS_SESSION_TOKEN}
+          echo "AWS_ROLE_SESSION_NAME=cicd-access" >> $GITHUB_ENV
+          echo "::add-mask::${AWS_SESSION_TOKEN}" # Hide secret from logs
 
       - name: Build Laravel
         run: |
