@@ -67,7 +67,7 @@ jobs:
 
       - name: Invoke artisan lambda
         run: |
-          aws --format text lambda invoke \
+          aws --output table lambda invoke \
             --cli-binary-format raw-in-base64-out \
             --function-name ${{ steps.env.outputs.lambda-name }} \
             --payload '"${{ github.event.inputs.command }}"' \
