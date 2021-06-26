@@ -17,6 +17,12 @@ env:
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'laravel/**'
+      - 'template.yml'
+      - 'template-aurora.yml'
+      - '.github/workflows/deploy.yml'
+      - '!.github/workflows/**'
   workflow_dispatch:
     inputs:
       environment:
