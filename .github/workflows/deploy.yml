@@ -153,7 +153,7 @@ jobs:
             --output text)
           aws --output table lambda invoke \
             --cli-binary-format raw-in-base64-out \
-            --function-name ${{ steps.env.outputs.lambda-name }} \
+            --function-name $LAMBDA_NAME \
             --payload '"${LAMBDA_NAME}"' \
               response.txt
           cat response.json
