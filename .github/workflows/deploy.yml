@@ -156,7 +156,7 @@ jobs:
             --function-name $LAMBDA_NAME \
             --payload '"migrate --force"' \
               response.json
-          cat response.json
+          python -m json.tool response.json
       - name: Deploy Static
         run: |
           ASSETS_BUCKET=$(aws cloudformation describe-stacks  \
