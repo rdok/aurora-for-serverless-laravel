@@ -115,15 +115,15 @@ Resources:
   Storage:
     Type: AWS::S3::Bucket
 
-#  Domain:
-#    Type: AWS::Route53::RecordSet
-#    Properties:
-#      HostedZoneId: !Ref BaseDomainRoute53HostedZoneId
-#      Name: !Ref DomainName
-#      Type: A
-#      AliasTarget:
-#        HostedZoneId: Z2FDTNDATAQYW2
-#        DNSName: !GetAtt CDN.DomainName
+  Domain:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneId: !Ref BaseDomainRoute53HostedZoneId
+      Name: !Ref DomainName
+      Type: A
+      AliasTarget:
+        HostedZoneId: Z2FDTNDATAQYW2
+        DNSName: !GetAtt CDN.DomainName
   CDN:
     Type: AWS::CloudFront::Distribution
     Properties:
