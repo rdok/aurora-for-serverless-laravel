@@ -72,4 +72,4 @@ jobs:
             --payload '"${{ github.event.inputs.command }}"' \
               response.json
       - name: Print artisan response
-        run: python -m json.tool response.json
+        run: cat response.json | jq -r '.output'
