@@ -47,9 +47,9 @@ jobs:
             --role-arn $AWS_ROLE_ARN \
             --role-session-name cicd-access \
             --query "Credentials")
-          AWS_ACCESS_KEY_ID=$(echo $ASSUME_ROLE | jq -r '.AccessKeyId')
-          AWS_SECRET_ACCESS_KEY=$(echo $ASSUME_ROLE | jq -r '.SecretAccessKey')
-          AWS_SESSION_TOKEN=$(echo $ASSUME_ROLE | jq -r '.SessionToken')
+          export AWS_ACCESS_KEY_ID=$(echo $ASSUME_ROLE | jq -r '.AccessKeyId')
+          export AWS_SECRET_ACCESS_KEY=$(echo $ASSUME_ROLE | jq -r '.SecretAccessKey')
+          export AWS_SESSION_TOKEN=$(echo $ASSUME_ROLE | jq -r '.SessionToken')
 
           echo "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}" >> $GITHUB_ENV
           echo "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}" >> $GITHUB_ENV
@@ -58,18 +58,20 @@ jobs:
           echo "::add-mask::${AWS_SESSION_TOKEN}" # Hide secret from logs
           echo "AWS_ROLE_SESSION_NAME=cicd-access" >> $GITHUB_ENV
 
-      - name: Get artisan lambda name
-        run: |
           LAMBDA_NAME=$(aws cloudformation describe-stacks  \
             --region $AWS_DEFAULT_REGION \
             --stack-name "${{ steps.env.outputs.stack-laravel-name }}" \
             --query 'Stacks[0].Outputs[?OutputKey==`ArtisanLambdaName`].OutputValue' \
             --output text)
-          aws lambda invoke \
+          echo ::set-output name=lambda-name::"${LAMBDA_NAME}"
+
+      - name: Invoke artisan lambda
+        run: |
+          aws --format text lambda invoke \
             --cli-binary-format raw-in-base64-out \
-            --function-name ${LAMBDA_NAME} \
+            --function-name ${{ steps.env.outputs.lambda-name }} \
             --payload '"${{ github.event.inputs.command }}"' \
-              response.json
+              response.txt
       - name: Print artisan response
-        run: cat response.json
+        run: cat response.txt
 
