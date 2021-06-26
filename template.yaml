@@ -49,33 +49,33 @@ Globals:
 
 Resources:
 
-#  Laravel:
-#    Type: AWS::Serverless::Function
-#    Properties:
-#      Timeout: 28 # in seconds (API Gateway has a timeout of 30 seconds)
-#      Layers: ["arn:aws:lambda:eu-west-1:209497400698:layer:php-80-fpm:9"]
-#      Handler: public/index.php
-#      Environment:
-#        Variables:
-#          AWS_PUBLIC_BUCKET: !Ref Assets
-#          MIX_ASSET_URL: !Join [ '', [ 'https://', !Ref DomainName, '/assets' ] ]
-#          ASSET_URL: !Join [ '', [ 'https://', !Ref DomainName, '/assets' ] ]
-#      Events:
-#        Root:
-#          Type: HttpApi
-#          Properties:
-#            Path: /
-#            Method: ANY
-#        Proxy:
-#          Type: HttpApi
-#          Properties:
-#            Path: '/{proxy+}'
-#            Method: ANY
-#      Policies:
-#        - S3FullAccessPolicy: { BucketName: !Ref Storage }
-#        - AWSSecretsManagerGetSecretValuePolicy:
-#            SecretArn:
-#              Fn::ImportValue: !Sub "${AuroraStackName}-AuroraSecretsARN"
+  Laravel:
+    Type: AWS::Serverless::Function
+    Properties:
+      Timeout: 28 # in seconds (API Gateway has a timeout of 30 seconds)
+      Layers: ["arn:aws:lambda:eu-west-1:209497400698:layer:php-80-fpm:9"]
+      Handler: public/index.php
+      Environment:
+        Variables:
+          AWS_PUBLIC_BUCKET: !Ref Assets
+          MIX_ASSET_URL: !Join [ '', [ 'https://', !Ref DomainName, '/assets' ] ]
+          ASSET_URL: !Join [ '', [ 'https://', !Ref DomainName, '/assets' ] ]
+      Events:
+        Root:
+          Type: HttpApi
+          Properties:
+            Path: /
+            Method: ANY
+        Proxy:
+          Type: HttpApi
+          Properties:
+            Path: '/{proxy+}'
+            Method: ANY
+      Policies:
+        - S3FullAccessPolicy: { BucketName: !Ref Storage }
+        - AWSSecretsManagerGetSecretValuePolicy:
+            SecretArn:
+              Fn::ImportValue: !Sub "${AuroraStackName}-AuroraSecretsARN"
 #  Artisan:
 #    Type: AWS::Serverless::Function
 #    Properties:
