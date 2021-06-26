@@ -5,7 +5,8 @@ env:
   BASE_DOMAIN_NAME: rdok.co.uk
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  AWS_DEFAULT_REGION: 'eu-west-1' # Required to solve issue with Python AWS https://github.com/aws/aws-cli/issues/5262 
+  AWS_DEFAULT_REGION: 'eu-west-1' # Required to solve issue with Python AWS https://github.com/aws/aws-cli/issues/5262
+  AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
 on:
   workflow_dispatch:
     inputs:
@@ -56,10 +57,11 @@ jobs:
           echo "AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}" >> $GITHUB_ENV
           echo "::add-mask::${AWS_SESSION_TOKEN}" # Hide secret from logs
           echo "AWS_ROLE_SESSION_NAME=cicd-access" >> $GITHUB_ENV
+
       - name: Get artisan lambda name
         run: |
           LAMBDA_NAME=$(aws cloudformation describe-stacks  \
-            --region "eu-west-1" \
+            --region $AWS_DEFAULT_REGION \
             --stack-name "${{ steps.env.outputs.stack-laravel-name }}" \
             --query 'Stacks[0].Outputs[?OutputKey==`ArtisanLambdaName`].OutputValue' \
             --output text)
