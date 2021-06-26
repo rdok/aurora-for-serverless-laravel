@@ -5,6 +5,7 @@ export LARAVEL_DIR=$(shell pwd)/laravel
 start: ${LARAVEL_DIR}/vendor/bin/sail
 	cd $${LARAVEL_DIR} && \
 		./vendor/bin/sail up -d && \
+		docker-compose exec laravel.test bash -c 'php artisan migrate' && \
 		./vendor/bin/sail npm install && \
 		./vendor/bin/sail npm run watch-poll
 
