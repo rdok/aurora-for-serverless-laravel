@@ -19,7 +19,7 @@
 </div>
 
 <hr>
-<a href="https://github.com/rdok/aurora-for-serverless-laravel/blob/1d29230cce06c4e956bfaaaefb4260b830363ed6/laravel/resources/views/welcome.blade.php#L17">
+<a href="https://github.com/rdok/aurora-for-serverless-laravel/blob/a839d86fd362944c679718c3b4249094b07b4393/laravel/resources/views/welcome.blade.php#L22">
     <img
         style="border: 1px solid #555; width: 100%"
         src="{{ asset('img/infrastructure.jpg') }}"
@@ -29,7 +29,7 @@
 
 <hr>
 
-<a href="https://github.com/rdok/aurora-for-serverless-laravel/blob/1d29230cce06c4e956bfaaaefb4260b830363ed6/laravel/resources/views/welcome.blade.php#L29">
+<a href="https://github.com/rdok/aurora-for-serverless-laravel/blob/a839d86fd362944c679718c3b4249094b07b4393/laravel/resources/views/welcome.blade.php#L32">
     <img
         style="width: 100%"
         src="data:image/jpg;base64,{!!  base64_encode(Storage::get('showcase-storage-retrieval.jpg')) !!}"

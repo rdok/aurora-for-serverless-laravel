@@ -16,10 +16,6 @@ use Illuminate\Support\Facades\Storage;
 */
 
 Route::get('/', function () {
-    return view('welcome');
-});
-
-Route::get('/aurora', function () {
     $stat = Stat::where(['name' => 'website_views'])->find(1);
     $counter = $stat ? $stat->counter : 0;
     return view('aurora', ['websiteViewsCounter' => $counter]);
