@@ -15,7 +15,7 @@ on:
       environment:
         required: false
         description: "Allowed values: prod, test"
-        default: prod
+        default: test
 jobs:
   deploy:
     runs-on: ubuntu-20.04
