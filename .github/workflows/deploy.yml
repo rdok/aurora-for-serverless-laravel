@@ -9,7 +9,9 @@ env:
   BASE_DOMAIN_WILD_CARD_CERTIFICATE_ARN: ${{ secrets.BASE_DOMAIN_WILD_CARD_CERTIFICATE_ARN }}
   AWS_DEFAULT_REGION: 'eu-west-1' # Required to solve issue with Python AWS https://github.com/aws/aws-cli/issues/5262
   APP_KEY: ${{ secrets.APP_KEY }} # Generate using `php artisan key:generate --show`
-  AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }} # The role authorised to perform CI/CD actions
+  # The role authorised to perform CI/CD actions
+  # See https://github.com/rdok/cicd-iam-terraform/blob/main/aurora-for-serverless-laravel.tf
+  AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
 on:
   push:
     branches: [ main ]
@@ -56,7 +58,7 @@ jobs:
       - name: Deploy domain certificate
         run: |
           sam deploy \
-            --role-arn $AWS_ROLE_ARN \
+            --role-arn "${AWS_ROLE_ARN}" \
             --template-file template-certificate.yml \
             --region "us-east-1" \
             --s3-bucket "${{ steps.env.outputs.cicd-bucket-certificate }}" \
