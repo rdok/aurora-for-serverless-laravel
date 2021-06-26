@@ -67,6 +67,25 @@ jobs:
           echo "::add-mask::${AWS_SESSION_TOKEN}" # Hide secret from logs
           echo "AWS_ROLE_SESSION_NAME=cicd-access" >> $GITHUB_ENV
 
+          SECURITY_GROUP_ID=$(aws ec2 describe-security-groups \
+            --filters Name=group-name,Values=default \
+            --query 'SecurityGroups[*].GroupId' \
+            --output text)
+          echo ::set-output name=security-group-id::"${SECURITY_GROUP_ID}"
+
+          VPC_ID=$(aws ec2 describe-vpcs \
+            --filters Name=isDefault,Values=true \
+            --query 'Vpcs[*].VpcId' \
+            --output text)
+          echo ::set-output name=vpc-id::"${VPC_ID}"
+
+          SUBNET_IDS=$(aws ec2 describe-subnets \
+            --filters "Name=vpc-id,Values=${VPC_ID}" \
+            --query 'Subnets[*].SubnetId' \
+            --output text)
+          SUBNET_IDS=$(echo $SUBNET_IDS | sed 's/ /,/g')
+          echo ::set-output name=subnet-ids::"${SUBNET_IDS}"
+
       - name: Build Laravel
         run: |
           make config-clear
@@ -92,19 +111,6 @@ jobs:
               BaseDomainRoute53HostedZoneId="${BASE_DOMAIN_ROUTE_53_HOSTED_ZONE_ID}"
       - name: Deploy Aurora
         run: |
-          SECURITY_GROUP_ID=$(aws ec2 describe-security-groups \
-            --filters Name=group-name,Values=default \
-            --query 'SecurityGroups[*].GroupId' \
-            --output text)
-          VPC_ID=$(aws ec2 describe-vpcs \
-            --filters Name=isDefault,Values=true \
-            --query 'Vpcs[*].VpcId' \
-            --output text)
-          SUBNET_IDS=$(aws ec2 describe-subnets \
-            --filters "Name=vpc-id,Values=${VPC_ID}" \
-            --query 'Subnets[*].SubnetId' \
-            --output text)
-          SUBNET_IDS=$(echo $SUBNET_IDS | sed 's/ /,/g')
           sam deploy \
             --region $AWS_DEFAULT_REGION \
             --s3-bucket "${{ steps.env.outputs.cicd-bucket-laravel }}" \
@@ -115,30 +121,29 @@ jobs:
             --no-confirm-changeset \
             --template template-aurora.yaml \
             --parameter-overrides \
-              VpcId=${VPC_ID} \
-              SubnetIds=${SUBNET_IDS} \
-              SecurityGroupId=${SECURITY_GROUP_ID}
-#      - name: Deploy Laravel
-#        run: |
-#          CERTIFICATE_ARN=$(aws cloudformation describe-stacks  \
-#            --region $CERTIFICATE_REGION \
-#            --stack-name "${{ steps.env.outputs.stack-certificate-name }}" \
-#            --query 'Stacks[0].Outputs[?OutputKey==`CertificateARN`].OutputValue' \
-#            --output text)
-#          sam deploy \
-#            --region $AWS_DEFAULT_REGION \
-#            --s3-bucket "${{ steps.env.outputs.cicd-bucket-laravel }}" \
-#            --s3-prefix "${NAME}" \
-#            --stack-name "${{ steps.env.outputs.stack-laravel-name }}" \
-#            --capabilities CAPABILITY_IAM \
-#            --no-fail-on-empty-changeset \
-#            --no-confirm-changeset \
-#            --parameter-overrides \
-#              CertificateARN="${CERTIFICATE_ARN}" \
-#              AppKey="${APP_KEY}" \
-#              DomainName="${{ steps.env.outputs.domain-name }}" \
-#              WildcardCertificateARN="${BASE_DOMAIN_WILD_CARD_CERTIFICATE_ARN}" \
-#              BaseDomainRoute53HostedZoneId="${BASE_DOMAIN_ROUTE_53_HOSTED_ZONE_ID}"
+              SecurityGroupId="${{ steps.env.outputs.security-group-id }}" \
+              VpcId="${{ steps.env.outputs.vpc-id }}" \
+              SubnetIds="${{ steps.env.outputs.subnet-ids }}"
+      - name: Deploy Laravel
+        run: |
+          sam deploy \
+            --region $AWS_DEFAULT_REGION \
+            --s3-bucket "${{ steps.env.outputs.cicd-bucket-laravel }}" \
+            --s3-prefix "${NAME}" \
+            --stack-name "${{ steps.env.outputs.stack-laravel-name }}" \
+            --capabilities CAPABILITY_IAM \
+            --no-fail-on-empty-changeset \
+            --no-confirm-changeset \
+            --parameter-overrides \
+              DomainName="${{ steps.env.outputs.domain-name }}" \
+              WildcardCertificateARN=${BASE_DOMAIN_WILD_CARD_CERTIFICATE_ARN} \
+              AppKey=${APP_KEY} \
+              BaseDomainRoute53HostedZoneId=${BASE_DOMAIN_ROUTE_53_HOSTED_ZONE_ID} \
+              AuroraStackName="${{ steps.env.outputs.stack-aurora-name }}" \
+              CertificateStackName="${{ steps.env.outputs.stack-certificate-name }}" \
+              SecurityGroupId="${{ steps.env.outputs.security-group-id }}" \
+              VpcId="${{ steps.env.outputs.vpc-id }}" \
+              SubnetIds="${{ steps.env.outputs.subnet-ids }}"
 #      - name: Deploy Static
 #        run: |
 #          ASSETS_BUCKET=$(aws cloudformation describe-stacks  \
