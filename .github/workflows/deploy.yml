@@ -56,6 +56,7 @@ jobs:
       - name: Deploy domain certificate
         run: |
           sam deploy \
+            --role-arn $AWS_ROLE_ARN \
             --template-file template-certificate.yml \
             --region "us-east-1" \
             --s3-bucket "${{ steps.env.outputs.cicd-bucket-certificate }}" \
