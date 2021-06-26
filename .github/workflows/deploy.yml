@@ -56,9 +56,9 @@ jobs:
             --role-arn $AWS_ROLE_ARN \
             --role-session-name cicd-access \
             --query "Credentials")
-          AWS_ACCESS_KEY_ID=$(echo $ASSUME_ROLE | jq -r '.AccessKeyId')
-          AWS_SECRET_ACCESS_KEY=$(echo $ASSUME_ROLE | jq -r '.SecretAccessKey')
-          AWS_SESSION_TOKEN=$(echo $ASSUME_ROLE | jq -r '.SessionToken')
+          export AWS_ACCESS_KEY_ID=$(echo $ASSUME_ROLE | jq -r '.AccessKeyId')
+          export AWS_SECRET_ACCESS_KEY=$(echo $ASSUME_ROLE | jq -r '.SecretAccessKey')
+          export AWS_SESSION_TOKEN=$(echo $ASSUME_ROLE | jq -r '.SessionToken')
 
           echo "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}" >> $GITHUB_ENV
           echo "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}" >> $GITHUB_ENV
