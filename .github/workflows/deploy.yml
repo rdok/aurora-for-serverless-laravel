@@ -50,9 +50,13 @@ jobs:
           echo ::set-output name=cicd-bucket-certificate::"${ORG}-${ENVIRONMENT}-cicd-${CERTIFICATE_REGION}"
           echo ::set-output name=cicd-bucket-laravel::"${ORG}-${ENVIRONMENT}-cicd-${AWS_DEFAULT_REGION1}"
 
-          STS=$(aws sts assume-role \
+          AWS_SESSION_TOKEN=$(aws sts assume-role \
             --role-arn $AWS_ROLE_ARN \
-            --role-session-name cicd-access)
+            --role-session-name cicd-access \
+            --query "Credentials.SessionToken")
+          echo "AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}" >> $GITHUB_ENV
+          echo "::add-mask::${AWS_SESSION_TOKEN}"
+          echo ${AWS_SESSION_TOKEN}
 
       - name: Build Laravel
         run: |
