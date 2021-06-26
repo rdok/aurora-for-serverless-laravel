@@ -18,37 +18,37 @@ Resources:
         ExcludeCharacters: '"@/\'
         SecretStringTemplate: '{"username": "admin"}'
         GenerateStringKey: "password"
-  ConnectToSecrets:
-    Type: AWS::EC2::VPCEndpoint
-    Properties:
-      PrivateDnsEnabled: true
-      VpcId: !Ref VpcId
-      VpcEndpointType: Interface
-      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.secretsmanager'
-      SubnetIds: !Ref SubnetIds
-      SecurityGroupIds: [ !Ref SecurityGroupId ]
-  Aurora:
-    Type: 'AWS::RDS::DBCluster'
-    Properties:
-      DatabaseName: main
-      MasterUsername: !Sub '{{resolve:secretsmanager:${AuroraSecrets}:SecretString:username}}'
-      MasterUserPassword: !Sub '{{resolve:secretsmanager:${AuroraSecrets}:SecretString:password}}'
-      Engine: aurora-mysql
-      EngineVersion: 5.7.12
-      EngineMode: serverless
-      ScalingConfiguration:
-        AutoPause: true
-        MinCapacity: 1
-        MaxCapacity: 1
-        SecondsUntilAutoPause: 300
-  LinkSecretsToAurora:
-    Type: "AWS::SecretsManager::SecretTargetAttachment"
-    Properties:
-      SecretId: !Ref AuroraSecrets
-      TargetId: !Ref Aurora
-      TargetType: AWS::RDS::DBCluster
-Outputs:
-  AuroraSecretsARN:
-    Value: !Ref LinkSecretsToAurora
-    Export:
-      Name: !Sub "${AWS::StackName}-AuroraSecretsARN"
+#  ConnectToSecrets:
+#    Type: AWS::EC2::VPCEndpoint
+#    Properties:
+#      PrivateDnsEnabled: true
+#      VpcId: !Ref VpcId
+#      VpcEndpointType: Interface
+#      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.secretsmanager'
+#      SubnetIds: !Ref SubnetIds
+#      SecurityGroupIds: [ !Ref SecurityGroupId ]
+#  Aurora:
+#    Type: 'AWS::RDS::DBCluster'
+#    Properties:
+#      DatabaseName: main
+#      MasterUsername: !Sub '{{resolve:secretsmanager:${AuroraSecrets}:SecretString:username}}'
+#      MasterUserPassword: !Sub '{{resolve:secretsmanager:${AuroraSecrets}:SecretString:password}}'
+#      Engine: aurora-mysql
+#      EngineVersion: 5.7.12
+#      EngineMode: serverless
+#      ScalingConfiguration:
+#        AutoPause: true
+#        MinCapacity: 1
+#        MaxCapacity: 1
+#        SecondsUntilAutoPause: 300
+#  LinkSecretsToAurora:
+#    Type: "AWS::SecretsManager::SecretTargetAttachment"
+#    Properties:
+#      SecretId: !Ref AuroraSecrets
+#      TargetId: !Ref Aurora
+#      TargetType: AWS::RDS::DBCluster
+#Outputs:
+#  AuroraSecretsARN:
+#    Value: !Ref LinkSecretsToAurora
+#    Export:
+#      Name: !Sub "${AWS::StackName}-AuroraSecretsARN"
