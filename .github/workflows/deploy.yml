@@ -57,7 +57,6 @@ jobs:
           npm run prod
       - name: Deploy domain certificate
         run: |
-          aws sts get-caller-identity
           sam deploy \
             --role-arn "${AWS_ROLE_ARN}" \
             --template-file template-certificate.yml \

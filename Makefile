@@ -71,7 +71,13 @@ deploy-assets:
 	aws s3 sync ./public s3://$${ASSETS_BUCKET_NAME}/assets --delete
 
 deploy-certificate:
-	sam deploy --no-confirm-changeset --config-env certificate --template template-certificate.yml
+	export AWS_ROLE_ARN=arn:aws:iam::353196159109:role/rdokos/aurora-for-serverless-laravel && \
+	sam deploy \
+        --role-arn $${AWS_ROLE_ARN} \
+	    --no-confirm-changeset \
+	    --config-env certificate \
+	    --template template-certificate.yml \
+	    --profile aurora-for-serverless-laravel
 
 npm-prod: ${LARAVEL_DIR}/vendor/bin/sail
 	cd $${LARAVEL_DIR} && \
