@@ -39,8 +39,6 @@ jobs:
             exit 1
           fi
 
-          echo ::set-output name=stack-laravel-name::"${ORG}-${ENVIRONMENT}-${NAME}"
-
           ASSUME_ROLE=$(aws sts assume-role \
             --region $AWS_DEFAULT_REGION \
             --output json \
@@ -58,9 +56,10 @@ jobs:
           echo "::add-mask::${AWS_SESSION_TOKEN}" # Hide secret from logs
           echo "AWS_ROLE_SESSION_NAME=cicd-access" >> $GITHUB_ENV
 
+          STACK_LARAVEL_NAME=${ORG}-${ENVIRONMENT}-${NAME}
           LAMBDA_NAME=$(aws cloudformation describe-stacks  \
             --region $AWS_DEFAULT_REGION \
-            --stack-name "${{ steps.env.outputs.stack-laravel-name }}" \
+            --stack-name "${STACK_LARAVEL_NAME}" \
             --query 'Stacks[0].Outputs[?OutputKey==`ArtisanLambdaName`].OutputValue' \
             --output text)
           echo ::set-output name=lambda-name::"${LAMBDA_NAME}"
