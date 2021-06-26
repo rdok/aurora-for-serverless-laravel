@@ -10,13 +10,13 @@ start: ${LARAVEL_DIR}/vendor/bin/sail
 
 up: ${LARAVEL_DIR}/vendor/bin/sail
 	cd $${LARAVEL_DIR} && \
-		./vendor/bin/sail up
+		./vendor/bin/sail up -d
 
 down: ${LARAVEL_DIR}/vendor/bin/sail
 	cd $${LARAVEL_DIR} && \
 		./vendor/bin/sail down
 
-shell:
+shell: up
 	cd ${LARAVEL_DIR} && \
 	docker-compose exec laravel.test bash
 
@@ -151,7 +151,29 @@ artisan: # command=inspire
 	cat response.json
 	rm response.json
 
-# 	LARAVEL_SECURITY_GROUP_ID=$$(aws cloudformation describe-stacks  \
-# 		--stack-name 'rdokos-local-aurora-for-serverless-laravel' \
-# 		--query 'Stacks[0].Outputs[?OutputKey==`LaravelSecurityGroupId`].OutputValue' \
-# 		--output text) && \
+deploy-aurora:
+	SECURITY_GROUP_ID=$$(aws ec2 describe-security-groups \
+		--filters Name=group-name,Values=default \
+		--query 'SecurityGroups[*].GroupId' \
+		--output text) && \
+	VPC_ID=$$(aws ec2 describe-vpcs \
+		--filters Name=isDefault,Values=true \
+		--query 'Vpcs[*].VpcId' \
+		--output text) && \
+	VPC_ID=$$(aws ec2 describe-vpcs \
+		--filters Name=isDefault,Values=true \
+		--query 'Vpcs[*].VpcId' \
+		--output text) && \
+	SUBNET_IDS=$$(aws ec2 describe-subnets \
+		--filters "Name=vpc-id,Values=$${VPC_ID}" \
+		--query 'Subnets[*].SubnetId' \
+		--output text) && \
+	SUBNET_IDS=$$(echo $$SUBNET_IDS | sed 's/ /,/g') && \
+	sam deploy \
+		--config-env database \
+		--template template-aurora.yaml \
+		--parameter-overrides \
+			SecurityGroupId=$${SECURITY_GROUP_ID} \
+			VpcId=$${VPC_ID} \
+			SubnetIds=$${SUBNET_IDS} \
+			LaravelStackName='rdokos-local-serverless-laravel'
