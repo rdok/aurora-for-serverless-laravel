@@ -100,18 +100,18 @@ Resources:
       SecurityGroupIds: [ !Ref SecurityGroupId ]
   Assets:
     Type: AWS::S3::Bucket
-#  AssetsBucketPolicy:
-#    Type: AWS::S3::BucketPolicy
-#    Properties:
-#      Bucket:
-#        Ref: Assets
-#      PolicyDocument:
-#        Statement:
-#          Effect: Allow
-#          Action: s3:GetObject
-#          Principal:
-#            CanonicalUser: !GetAtt CDNIdentity.S3CanonicalUserId
-#          Resource: !Sub "${Assets.Arn}/*"
+  AssetsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Ref: Assets
+      PolicyDocument:
+        Statement:
+          Effect: Allow
+          Action: s3:GetObject
+          Principal:
+            CanonicalUser: !GetAtt CDNIdentity.S3CanonicalUserId
+          Resource: !Sub "${Assets.Arn}/*"
   Storage:
     Type: AWS::S3::Bucket
 
