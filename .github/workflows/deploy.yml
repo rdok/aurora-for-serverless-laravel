@@ -9,6 +9,7 @@ env:
   BASE_DOMAIN_WILD_CARD_CERTIFICATE_ARN: ${{ secrets.BASE_DOMAIN_WILD_CARD_CERTIFICATE_ARN }}
   AWS_DEFAULT_REGION: 'eu-west-1' # Required to solve issue with Python AWS https://github.com/aws/aws-cli/issues/5262
   APP_KEY: ${{ secrets.APP_KEY }} # Generate using `php artisan key:generate --show`
+  AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }} # The role authorised to perform CI/CD actions
 on:
   push:
     branches: [ main ]
