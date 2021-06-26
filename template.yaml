@@ -1,10 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
-Description: >
-  AWS SAM & Laravel template using bref.
-
-  https://github.com/aws-samples/php-examples-for-aws-lambda/blob/master/0.4-Building-A-Serverless-Laravel-App-With-AWS-SAM/template.yaml
-
+Description: Serverless Aurora & Laravel
 Parameters:
   DomainName:
     Type: String
@@ -23,7 +19,6 @@ Parameters:
     Type: String
   SecurityGroupId:
     Type: AWS::EC2::SecurityGroup::Id
-
 Globals:
   Function:
     Tracing: Active
@@ -167,12 +162,12 @@ Resources:
     Properties:
       CloudFrontOriginAccessIdentityConfig:
         Comment: !Sub "${DomainName}"
-#Outputs:
-#  Domain:
-#    Value: !Sub "https://${DomainName}"
-#  AssetsBucketName:
-#    Value: !Ref Assets
-#  StorageBucketName:
-#    Value: !Ref Storage
-#  ArtisanLambdaName:
-#    Value: !Ref Artisan
+Outputs:
+  Domain:
+    Value: !Sub "https://${DomainName}"
+  AssetsBucketName:
+    Value: !Ref Assets
+  StorageBucketName:
+    Value: !Ref Storage
+  ArtisanLambdaName:
+    Value: !Ref Artisan
