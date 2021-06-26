@@ -28,17 +28,9 @@ jobs:
           ENVIRONMENT: ${{ github.event.inputs.environment }}
         run: |
           [ "$ENVIRONMENT" = "" ] && ENVIRONMENT=test
+          STACK_LARAVEL_NAME=${ORG}-${ENVIRONMENT}-${NAME}
 
-          if [ "$ENVIRONMENT" == "test" ]; then
-            echo ::set-output name=domain-name::"${NAME}-test.${BASE_DOMAIN_NAME}"
-          elif [ "$ENVIRONMENT" == "prod" ]; then
-            echo ::set-output name=domain-name::"${NAME}.${BASE_DOMAIN_NAME}"
-          else
-            printf '%s\n' "ENVIRONMENT is not in accepted range: test, prod." >&2
-            exit 1
-          fi
-
-          echo ::set-output name=stack-laravel-name::"${ORG}-${ENVIRONMENT}-${NAME}"
+          echo ::set-output name=stack-laravel-name::"${STACK_LARAVEL_NAME}"
           echo ::set-output name=stack-certificate-name::"${ORG}-${ENVIRONMENT}-${NAME}-certificate"
           echo ::set-output name=stack-aurora-name::"${ORG}-${ENVIRONMENT}-${NAME}-aurora"
 
@@ -62,14 +54,14 @@ jobs:
 
           ASSETS_BUCKET=$(aws cloudformation describe-stacks  \
             --region $AWS_DEFAULT_REGION \
-            --stack-name "${{ steps.env.outputs.stack-laravel-name }}" \
+            --stack-name "${STACK_LARAVEL_NAME}" \
             --query 'Stacks[0].Outputs[?OutputKey==`AssetsBucketName`].OutputValue' \
             --output text)
           echo ::set-output name=assets-bucket::"${ASSETS_BUCKET}"
 
           STORAGE_BUCKET=$(aws cloudformation describe-stacks  \
             --region $AWS_DEFAULT_REGION \
-            --stack-name "${{ steps.env.outputs.stack-laravel-name }}" \
+            --stack-name "${STACK_LARAVEL_NAME}" \
             --query 'Stacks[0].Outputs[?OutputKey==`StorageBucketName`].OutputValue' \
             --output text)
           echo ::set-output name=storage-bucket::"${STORAGE_BUCKET}"
