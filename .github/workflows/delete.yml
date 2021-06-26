@@ -1,0 +1,67 @@
+name: Delete
+env:
+  ORG: rdokos
+  NAME: aurora-for-serverless-laravel
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: 'eu-west-1' # Required to solve issue with Python AWS https://github.com/aws/aws-cli/issues/5262
+  CERTIFICATE_REGION: 'us-east-1'
+  AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      environment:
+        required: false
+        description: "Allowed values: prod, test"
+        default: prod
+jobs:
+  deploy:
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Prepare environment variables
+        id: env
+        env:
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+        run: |
+          [ "$ENVIRONMENT" = "" ] && ENVIRONMENT=test
+
+          if [ "$ENVIRONMENT" == "test" ]; then
+            echo ::set-output name=domain-name::"${NAME}-test.${BASE_DOMAIN_NAME}"
+          elif [ "$ENVIRONMENT" == "prod" ]; then
+            echo ::set-output name=domain-name::"${NAME}.${BASE_DOMAIN_NAME}"
+          else
+            printf '%s\n' "ENVIRONMENT is not in accepted range: test, prod." >&2
+            exit 1
+          fi
+
+          echo ::set-output name=stack-laravel-name::"${ORG}-${ENVIRONMENT}-${NAME}"
+          echo ::set-output name=stack-certificate-name::"${ORG}-${ENVIRONMENT}-${NAME}-certificate"
+          echo ::set-output name=stack-aurora-name::"${ORG}-${ENVIRONMENT}-${NAME}-aurora"
+
+          ASSUME_ROLE=$(aws sts assume-role \
+            --region $AWS_DEFAULT_REGION \
+            --output json \
+            --role-arn $AWS_ROLE_ARN \
+            --role-session-name cicd-access \
+            --query "Credentials")
+          export AWS_ACCESS_KEY_ID=$(echo $ASSUME_ROLE | jq -r '.AccessKeyId')
+          export AWS_SECRET_ACCESS_KEY=$(echo $ASSUME_ROLE | jq -r '.SecretAccessKey')
+          export AWS_SESSION_TOKEN=$(echo $ASSUME_ROLE | jq -r '.SessionToken')
+
+          echo "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}" >> $GITHUB_ENV
+          echo "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}" >> $GITHUB_ENV
+          echo "::add-mask::${AWS_SECRET_ACCESS_KEY}" # Hide secret from logs
+          echo "AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}" >> $GITHUB_ENV
+          echo "::add-mask::${AWS_SESSION_TOKEN}" # Hide secret from logs
+          echo "AWS_ROLE_SESSION_NAME=cicd-access" >> $GITHUB_ENV
+
+
+      - name: Delete Laravel
+        run: aws cloudformation delete-stack --stack-name "${{ steps.env.outputs.stack-laravel-name }}"
+      - name: Delete Aurora
+        run: aws cloudformation delete-stack --stack-name "${{ steps.env.outputs.stack-aurora-name }}"
+      - name: Delete Certificate
+        run: aws cloudformation delete-stack --stack-name "${{ steps.env.outputs.stack-certificate-name }}"
