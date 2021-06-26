@@ -80,8 +80,8 @@ jobs:
           aws s3 rm --recursive s3://"${{ steps.env.outputs.assets-bucket }}"
           aws cloudformation stack-delete-complete --stack-name "${{ steps.env.outputs.stack-laravel-name }}"
       - name: Delete Aurora
+        run:  aws cloudformation stack-delete-complete --stack-name "${{ steps.env.outputs.stack-aurora-name }}"
+      - name: Delete Certificate
         run: |
           aws --region ${CERTIFICATE_REGION} \
-            cloudformation stack-delete-complete --stack-name "${{ steps.env.outputs.stack-aurora-name }}"
-      - name: Delete Certificate
-        run: aws cloudformation stack-delete-complete --stack-name "${{ steps.env.outputs.stack-certificate-name }}"
+            cloudformation stack-delete-complete --stack-name "${{ steps.env.outputs.stack-certificate-name }}"
