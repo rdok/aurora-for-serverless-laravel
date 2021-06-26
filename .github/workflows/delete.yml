@@ -60,8 +60,25 @@ jobs:
           echo "AWS_ROLE_SESSION_NAME=cicd-access" >> $GITHUB_ENV
 
 
+          ASSETS_BUCKET=$(aws cloudformation describe-stacks  \
+            --region $AWS_DEFAULT_REGION \
+            --stack-name "${{ steps.env.outputs.stack-laravel-name }}" \
+            --query 'Stacks[0].Outputs[?OutputKey==`AssetsBucketName`].OutputValue' \
+            --output text)
+          echo ::set-output name=assets-bucket::"${ASSETS_BUCKET}"
+
+          STORAGE_BUCKET=$(aws cloudformation describe-stacks  \
+            --region $AWS_DEFAULT_REGION \
+            --stack-name "${{ steps.env.outputs.stack-laravel-name }}" \
+            --query 'Stacks[0].Outputs[?OutputKey==`StorageBucketName`].OutputValue' \
+            --output text)
+          echo ::set-output name=storage-bucket::"${STORAGE_BUCKET}"
+
       - name: Delete Laravel
-        run: aws cloudformation stack-delete-complete --stack-name "${{ steps.env.outputs.stack-laravel-name }}"
+        run: |
+          aws s3 rm --recursive s3://"${{ steps.env.outputs.storage-bucket }}"
+          aws s3 rm --recursive s3://"${{ steps.env.outputs.assets-bucket }}"
+          aws cloudformation stack-delete-complete --stack-name "${{ steps.env.outputs.stack-laravel-name }}"
       - name: Delete Aurora
         run: |
           aws --region ${CERTIFICATE_REGION} \
