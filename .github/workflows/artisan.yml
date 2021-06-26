@@ -71,7 +71,7 @@ jobs:
             --cli-binary-format raw-in-base64-out \
             --function-name ${{ steps.env.outputs.lambda-name }} \
             --payload '"${{ github.event.inputs.command }}"' \
-              response.txt
+              response.json
       - name: Print artisan response
-        run: cat response.txt
+        run: cat response.json
 
