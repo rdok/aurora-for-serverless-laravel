@@ -156,7 +156,7 @@ jobs:
             --function-name $LAMBDA_NAME \
             --payload '"${LAMBDA_NAME}"' \
               response.txt
-          cat response.json
+          cat response.txt
       - name: Deploy Static
         run: |
           ASSETS_BUCKET=$(aws cloudformation describe-stacks  \
