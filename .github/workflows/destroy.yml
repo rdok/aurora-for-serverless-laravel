@@ -1,4 +1,4 @@
-name: Delete
+name: Destroy
 env:
   ORG: rdokos
   NAME: aurora-for-serverless-laravel
