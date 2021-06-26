@@ -15,8 +15,9 @@ env:
   BASE_DOMAIN_WILD_CARD_CERTIFICATE_ARN: ${{ secrets.BASE_DOMAIN_WILD_CARD_CERTIFICATE_ARN }}
   APP_KEY: ${{ secrets.APP_KEY }} # Generate using `php artisan key:generate --show`
 on:
-  push:
-    branches: [ main ]
+  #  TODO: enable on push trigger
+#  push:
+#    branches: [ main ]
   workflow_dispatch:
     inputs:
       environment:
