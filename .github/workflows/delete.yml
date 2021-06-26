@@ -56,21 +56,21 @@ jobs:
             --region $AWS_DEFAULT_REGION \
             --stack-name "${STACK_LARAVEL_NAME}" \
             --query 'Stacks[0].Outputs[?OutputKey==`AssetsBucketName`].OutputValue' \
-            --output text || '' )
+            --output text || '404' )
           echo ::set-output name=assets-bucket::"${ASSETS_BUCKET}"
 
           STORAGE_BUCKET=$(aws cloudformation describe-stacks  \
             --region $AWS_DEFAULT_REGION \
             --stack-name "${STACK_LARAVEL_NAME}" \
             --query 'Stacks[0].Outputs[?OutputKey==`StorageBucketName`].OutputValue' \
-            --output text || '')
+            --output text || '404')
           echo ::set-output name=storage-bucket::"${STORAGE_BUCKET}"
 
       - name: Empty storage bucket
-        if: ${{ steps.env.outputs.storage-bucket != '' }}
+        if: ${{ steps.env.outputs.storage-bucket != '404' }}
         run: aws s3 rm --recursive s3://"${{ steps.env.outputs.storage-bucket }}"
       - name: Empty assets bucket
-        if: ${{ steps.env.outputs.assets-bucket != '' }}
+        if: ${{ steps.env.outputs.assets-bucket != '404' }}
         run: aws s3 rm --recursive s3://"${{ steps.env.outputs.assets-bucket }}"
       - name: Delete Laravel
         run:  aws cloudformation wait stack-delete-complete --stack-name "${{ steps.env.outputs.stack-laravel-name }}"
