@@ -1,0 +1,32 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  AWS does not allow duplicate private DNS entries for secrets manager service.
+  Presumably for other private vpc endpoints as well.
+  Thus manage said endpoints to a separate stacks created on demand for both
+  test and prod environments.
+Parameters:
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+  SubnetIds:
+    Type: List<AWS::EC2::Subnet::Id>
+  SecurityGroupId:
+    Type: AWS::EC2::SecurityGroup::Id
+Resources:
+  S3PrivateLink:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref VpcId
+      VpcEndpointType: Interface
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
+      SubnetIds: !Ref SubnetIds
+      SecurityGroupIds: [ !Ref SecurityGroupId ]
+  SecretsManagerPrivateLink:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      PrivateDnsEnabled: true
+      VpcId: !Ref VpcId
+      VpcEndpointType: Interface
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.secretsmanager'
+      SubnetIds: !Ref SubnetIds
+      SecurityGroupIds: [ !Ref SecurityGroupId ]
