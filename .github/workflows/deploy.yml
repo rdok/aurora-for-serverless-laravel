@@ -101,8 +101,8 @@ jobs:
 
       - name: Deploy private links
         if: ${{ steps.env.outputs.stack-private-links-create-complete != '404' }}
+        # Caveat: when the infrastructure-private-links changes it will have to be re-deployed
         run: |
-#           Caveat: when the infrastructure-private-links changes it will have to be re-deployed
           sam deploy \
             --region $AWS_DEFAULT_REGION \
             --s3-bucket "${{ steps.env.outputs.cicd-bucket-laravel }}" \
