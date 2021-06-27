@@ -90,9 +90,7 @@ jobs:
           SUBNET_IDS=$(echo $SUBNET_IDS | sed 's/ /,/g')
           echo ::set-output name=subnet-ids::"${SUBNET_IDS}"
 
-#         Private links for AWS services like SecretsManager are unique.
-#         Thus, we're use the same for all environments
-          PRIVATE_LINKS_STACK=${ORG}-single-${NAME}-private-links
+          PRIVATE_LINKS_STACK=${ORG}-single-${NAME}-private-links # Re-use for all environment due to unique requirements
           echo ::set-output name=stack-private-links-name::"${PRIVATE_LINKS_STACK}"
 
       - name: Deploy private links
