@@ -101,9 +101,20 @@ jobs:
 
       - name: Deploy private links
         if: ${{ steps.env.outputs.stack-private-links-create-complete != '404' }}
-        run: echo 'execute'
-#        run: |
-#          sam deploy \
+        run: |
+          sam deploy \
+            --region $AWS_DEFAULT_REGION \
+            --s3-bucket "${{ steps.env.outputs.cicd-bucket-laravel }}" \
+            --s3-prefix "${NAME}-private-links" \
+            --stack-name "${{ steps.env.outputs.stack-private-links-name }}" \
+            --capabilities CAPABILITY_IAM \
+            --no-fail-on-empty-changeset \
+            --no-confirm-changeset \
+            --template infrastructure-private-links.yaml \
+            --parameter-overrides \
+              SecurityGroupId="${{ steps.env.outputs.security-group-id }}" \
+              VpcId="${{ steps.env.outputs.vpc-id }}" \
+              SubnetIds="${{ steps.env.outputs.subnet-ids }}"
 #      - name: Build Laravel
 #        run: |
 #          make config-clear
