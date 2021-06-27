@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: >
   AWS does not support duplicate private DNS entries for secrets manager service
-  VPC endpoints. Presumably for the other private VPC endpoints as well.
+  VPC endpoint. Presumably for the other private VPC endpoints as well.
   To handle this, manage said endpoints to a separate stack. Created on demand.
   And used for all environments.
 Parameters:
