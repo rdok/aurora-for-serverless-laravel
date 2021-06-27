@@ -90,18 +90,12 @@ jobs:
           SUBNET_IDS=$(echo $SUBNET_IDS | sed 's/ /,/g')
           echo ::set-output name=subnet-ids::"${SUBNET_IDS}"
 
+#         Private links for AWS services like SecretsManager are unique.
+#         Thus, we're use the same for all environments
           PRIVATE_LINKS_STACK=${ORG}-single-${NAME}-private-links
           echo ::set-output name=stack-private-links-name::"${PRIVATE_LINKS_STACK}"
 
-          PRIVATE_LINKS_STACK_CREATE_COMPLETE=$(aws --output text cloudformation \
-            list-stacks \
-              --query "StackSummaries[?StackName=='${PRIVATE_LINKS_STACK}'].StackName"  \
-              --stack-status-filter CREATE_COMPLETE || echo '404')
-          echo ::set-output name=stack-private-links-create-complete::"${PRIVATE_LINKS_STACK_CREATE_COMPLETE}"
-
       - name: Deploy private links
-        if: ${{ steps.env.outputs.stack-private-links-create-complete != '404' }}
-        # Caveat: when the infrastructure-private-links changes it will have to be re-deployed
         run: |
           sam deploy \
             --region $AWS_DEFAULT_REGION \
@@ -164,8 +158,8 @@ jobs:
             --capabilities CAPABILITY_IAM \
             --no-fail-on-empty-changeset \
             --no-confirm-changeset \
-            --parameter-overrides \
             --template infrastructure-laravel.yaml \
+            --parameter-overrides \
               DomainName="${{ steps.env.outputs.domain-name }}" \
               WildcardCertificateARN=${BASE_DOMAIN_WILD_CARD_CERTIFICATE_ARN} \
               AppKey=${APP_KEY} \
