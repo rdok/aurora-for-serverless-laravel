@@ -4,13 +4,13 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="author" content="Rizart Dokollari">
-    <title>AWS SAM - Laravel</title>
+    <title>Aurora for Serverless Laravel</title>
 
     <link rel="stylesheet" href="{{ mix('/css/app.css') }}"/>
 </head>
 <body class="main-content">
 <header>
-    <h1>Serverless Laravel</h1>
+    <h1>Aurora for Serverless Laravel</h1>
 </header>
 
 <div style="border: 1px solid #555; width: 100%; padding: 1em 0 1em 0">
