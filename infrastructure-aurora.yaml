@@ -18,15 +18,6 @@ Resources:
         ExcludeCharacters: '"@/\'
         SecretStringTemplate: '{"username": "admin"}'
         GenerateStringKey: "password"
-  ConnectToSecrets:
-    Type: AWS::EC2::VPCEndpoint
-    Properties:
-      PrivateDnsEnabled: true
-      VpcId: !Ref VpcId
-      VpcEndpointType: Interface
-      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.secretsmanager'
-      SubnetIds: !Ref SubnetIds
-      SecurityGroupIds: [ !Ref SecurityGroupId ]
   Aurora:
     Type: 'AWS::RDS::DBCluster'
     Properties:
