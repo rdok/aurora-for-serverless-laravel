@@ -95,7 +95,7 @@ jobs:
 
           PRIVATE_LINKS_STACK_CREATE_COMPLETE=$(aws --output text cloudformation \
             list-stacks \
-              --query "StackSummaries[?StackName==${PRIVATE_LINKS_STACK}].StackName"  \
+              --query "StackSummaries[?StackName=='${PRIVATE_LINKS_STACK}'].StackName"  \
               --stack-status-filter CREATE_COMPLETE || echo '404')
           echo ::set-output name=stack-private-links-create-complete::"${PRIVATE_LINKS_STACK_CREATE_COMPLETE}"
 
