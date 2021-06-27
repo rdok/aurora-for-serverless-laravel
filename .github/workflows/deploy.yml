@@ -90,90 +90,105 @@ jobs:
           SUBNET_IDS=$(echo $SUBNET_IDS | sed 's/ /,/g')
           echo ::set-output name=subnet-ids::"${SUBNET_IDS}"
 
-      - name: Build Laravel
-        run: |
-          make config-clear
-          make composer-prod
-      - name: Build Static
-        run: |
-          cd laravel
-          npm install
-          npm run prod
-      - name: Deploy domain certificate
-        run: |
-          sam deploy \
-            --template-file template-certificate.yml \
-            --region $CERTIFICATE_REGION \
-            --s3-bucket "${{ steps.env.outputs.cicd-bucket-certificate }}" \
-            --s3-prefix "${NAME}" \
-            --stack-name "${{ steps.env.outputs.stack-certificate-name }}" \
-            --capabilities CAPABILITY_IAM \
-            --no-fail-on-empty-changeset \
-            --no-confirm-changeset \
-            --parameter-overrides \
-              DomainName="${{ steps.env.outputs.domain-name }}" \
-              BaseDomainRoute53HostedZoneId="${BASE_DOMAIN_ROUTE_53_HOSTED_ZONE_ID}"
-      - name: Deploy Aurora
-        run: |
-          sam deploy \
-            --region $AWS_DEFAULT_REGION \
-            --s3-bucket "${{ steps.env.outputs.cicd-bucket-laravel }}" \
-            --s3-prefix "${NAME}-aurora" \
-            --stack-name "${{ steps.env.outputs.stack-aurora-name }}" \
-            --capabilities CAPABILITY_IAM \
-            --no-fail-on-empty-changeset \
-            --no-confirm-changeset \
-            --template template-aurora.yaml \
-            --parameter-overrides \
-              SecurityGroupId="${{ steps.env.outputs.security-group-id }}" \
-              VpcId="${{ steps.env.outputs.vpc-id }}" \
-              SubnetIds="${{ steps.env.outputs.subnet-ids }}"
-      - name: Deploy Laravel
-        run: |
-          sam deploy \
-            --region $AWS_DEFAULT_REGION \
-            --s3-bucket "${{ steps.env.outputs.cicd-bucket-laravel }}" \
-            --s3-prefix "${NAME}" \
-            --stack-name "${{ steps.env.outputs.stack-laravel-name }}" \
-            --capabilities CAPABILITY_IAM \
-            --no-fail-on-empty-changeset \
-            --no-confirm-changeset \
-            --parameter-overrides \
-              DomainName="${{ steps.env.outputs.domain-name }}" \
-              WildcardCertificateARN=${BASE_DOMAIN_WILD_CARD_CERTIFICATE_ARN} \
-              AppKey=${APP_KEY} \
-              BaseDomainRoute53HostedZoneId=${BASE_DOMAIN_ROUTE_53_HOSTED_ZONE_ID} \
-              AuroraStackName="${{ steps.env.outputs.stack-aurora-name }}" \
-              CertificateStackName="${{ steps.env.outputs.stack-certificate-name }}" \
-              SecurityGroupId="${{ steps.env.outputs.security-group-id }}" \
-              VpcId="${{ steps.env.outputs.vpc-id }}" \
-              SubnetIds="${{ steps.env.outputs.subnet-ids }}"
-      - name: Run migrations
-        run: |
-          LAMBDA_NAME=$(aws cloudformation describe-stacks  \
-            --region $AWS_DEFAULT_REGION \
-            --stack-name "${{ steps.env.outputs.stack-laravel-name }}" \
-            --query 'Stacks[0].Outputs[?OutputKey==`ArtisanLambdaName`].OutputValue' \
-            --output text)
-          aws --output table lambda invoke \
-            --cli-binary-format raw-in-base64-out \
-            --function-name $LAMBDA_NAME \
-            --payload '"migrate --force"' \
-              response.json
-          cat response.json | jq -r '.output'
-      - name: Deploy Static
-        run: |
-          ASSETS_BUCKET=$(aws cloudformation describe-stacks  \
-            --region $AWS_DEFAULT_REGION \
-            --stack-name "${{ steps.env.outputs.stack-laravel-name }}" \
-            --query 'Stacks[0].Outputs[?OutputKey==`AssetsBucketName`].OutputValue' \
-            --output text)
-          aws s3 sync ${GITHUB_WORKSPACE}/laravel/public s3://${ASSETS_BUCKET}/assets --delete
-      - name: Deploy Storage showcase file
-        run: |
-          STORAGE_BUCKET=$(aws cloudformation describe-stacks  \
-            --region $AWS_DEFAULT_REGION \
-            --stack-name "${{ steps.env.outputs.stack-laravel-name }}" \
-            --query 'Stacks[0].Outputs[?OutputKey==`StorageBucketName`].OutputValue' \
-            --output text)
-          aws s3 cp ${GITHUB_WORKSPACE}/laravel/storage/app/showcase-storage-retrieval.jpg s3://${STORAGE_BUCKET}
+          PRIVATE_LINKS_STACK=${ORG}-single-${NAME}-private-links
+          echo ::set-output name=stack-private-links-name::"${PRIVATE_LINKS_STACK}"
+
+          PRIVATE_LINKS_STACK_CREATE_COMPLETE=$(aws --output text cloudformation \
+            list-stacks \
+              --query "StackSummaries[?StackName==${PRIVATE_LINKS_STACK}].StackName"  \
+              --stack-status-filter CREATE_COMPLETE || echo '404')
+          echo ::set-output name=stack-private-links-create-complete::"${PRIVATE_LINKS_STACK_CREATE_COMPLETE}"
+
+      - name: Deploy private links
+        if: ${{ steps.env.outputs.stack-private-links-create-complete != '404' }}
+        run: echo 'execute'
+#        run: |
+#          sam deploy \
+#      - name: Build Laravel
+#        run: |
+#          make config-clear
+#          make composer-prod
+#      - name: Build Static
+#        run: |
+#          cd laravel
+#          npm install
+#          npm run prod
+#      - name: Deploy domain certificate
+#        run: |
+#          sam deploy \
+#            --template-file infrastructure-certificate.yml \
+#            --region $CERTIFICATE_REGION \
+#            --s3-bucket "${{ steps.env.outputs.cicd-bucket-certificate }}" \
+#            --s3-prefix "${NAME}" \
+#            --stack-name "${{ steps.env.outputs.stack-certificate-name }}" \
+#            --capabilities CAPABILITY_IAM \
+#            --no-fail-on-empty-changeset \
+#            --no-confirm-changeset \
+#            --parameter-overrides \
+#              DomainName="${{ steps.env.outputs.domain-name }}" \
+#              BaseDomainRoute53HostedZoneId="${BASE_DOMAIN_ROUTE_53_HOSTED_ZONE_ID}"
+#      - name: Deploy Aurora
+#        run: |
+#          sam deploy \
+#            --region $AWS_DEFAULT_REGION \
+#            --s3-bucket "${{ steps.env.outputs.cicd-bucket-laravel }}" \
+#            --s3-prefix "${NAME}-aurora" \
+#            --stack-name "${{ steps.env.outputs.stack-aurora-name }}" \
+#            --capabilities CAPABILITY_IAM \
+#            --no-fail-on-empty-changeset \
+#            --no-confirm-changeset \
+#            --template infrastructure-aurora.yaml \
+#            --parameter-overrides \
+#              SecurityGroupId="${{ steps.env.outputs.security-group-id }}" \
+#              VpcId="${{ steps.env.outputs.vpc-id }}" \
+#              SubnetIds="${{ steps.env.outputs.subnet-ids }}"
+#      - name: Deploy Laravel
+#        run: |
+#          sam deploy \
+#            --region $AWS_DEFAULT_REGION \
+#            --s3-bucket "${{ steps.env.outputs.cicd-bucket-laravel }}" \
+#            --s3-prefix "${NAME}" \
+#            --stack-name "${{ steps.env.outputs.stack-laravel-name }}" \
+#            --capabilities CAPABILITY_IAM \
+#            --no-fail-on-empty-changeset \
+#            --no-confirm-changeset \
+#            --parameter-overrides \
+#            --template infrastructure-laravel.yaml \
+#              DomainName="${{ steps.env.outputs.domain-name }}" \
+#              WildcardCertificateARN=${BASE_DOMAIN_WILD_CARD_CERTIFICATE_ARN} \
+#              AppKey=${APP_KEY} \
+#              BaseDomainRoute53HostedZoneId=${BASE_DOMAIN_ROUTE_53_HOSTED_ZONE_ID} \
+#              AuroraStackName="${{ steps.env.outputs.stack-aurora-name }}" \
+#              CertificateStackName="${{ steps.env.outputs.stack-certificate-name }}" \
+#              SecurityGroupId="${{ steps.env.outputs.security-group-id }}" \
+#              VpcId="${{ steps.env.outputs.vpc-id }}" \
+#              SubnetIds="${{ steps.env.outputs.subnet-ids }}"
+#      - name: Run migrations
+#        run: |
+#          LAMBDA_NAME=$(aws cloudformation describe-stacks  \
+#            --region $AWS_DEFAULT_REGION \
+#            --stack-name "${{ steps.env.outputs.stack-laravel-name }}" \
+#            --query 'Stacks[0].Outputs[?OutputKey==`ArtisanLambdaName`].OutputValue' \
+#            --output text)
+#          aws --output table lambda invoke \
+#            --cli-binary-format raw-in-base64-out \
+#            --function-name $LAMBDA_NAME \
+#            --payload '"migrate --force"' \
+#              response.json
+#          cat response.json | jq -r '.output'
+#      - name: Deploy Static
+#        run: |
+#          ASSETS_BUCKET=$(aws cloudformation describe-stacks  \
+#            --region $AWS_DEFAULT_REGION \
+#            --stack-name "${{ steps.env.outputs.stack-laravel-name }}" \
+#            --query 'Stacks[0].Outputs[?OutputKey==`AssetsBucketName`].OutputValue' \
+#            --output text)
+#          aws s3 sync ${GITHUB_WORKSPACE}/laravel/public s3://${ASSETS_BUCKET}/assets --delete
+#      - name: Deploy Storage showcase file
+#        run: |
+#          STORAGE_BUCKET=$(aws cloudformation describe-stacks  \
+#            --region $AWS_DEFAULT_REGION \
+#            --stack-name "${{ steps.env.outputs.stack-laravel-name }}" \
+#            --query 'Stacks[0].Outputs[?OutputKey==`StorageBucketName`].OutputValue' \
+#            --output text)
+#          aws s3 cp ${GITHUB_WORKSPACE}/laravel/storage/app/showcase-storage-retrieval.jpg s3://${STORAGE_BUCKET}
