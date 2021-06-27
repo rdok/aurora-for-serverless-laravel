@@ -9,7 +9,7 @@ env:
   AWS_ROLE_ARN: ${{ secrets.AWS_ROLE_ARN }}
 on:
   schedule:
-    - cron: "0 3 * * *" # Every day at 3am
+    - cron: "0 0 * * *" # Every midnight
   workflow_dispatch:
     inputs:
       environment:
