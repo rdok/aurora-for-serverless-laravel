@@ -77,7 +77,7 @@ deploy-certificate:
         --role-arn $${AWS_ROLE_ARN} \
 	    --no-confirm-changeset \
 	    --config-env certificate \
-	    --template template-certificate.yml \
+	    --template template-certificate.yaml \
 	    --profile aurora-for-serverless-laravel
 
 npm-prod: ${LARAVEL_DIR}/vendor/bin/sail

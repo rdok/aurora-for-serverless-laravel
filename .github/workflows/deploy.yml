@@ -19,7 +19,7 @@ on:
     branches: [ main ]
     paths:
       - 'laravel/**'
-      - '*.yml' # CloudFormation Templates
+      - '*.yaml' # CloudFormation Templates
       - '.github/workflows/deploy.yml'
   workflow_dispatch:
     inputs:
@@ -120,7 +120,7 @@ jobs:
       - name: Deploy domain certificate
         run: |
           sam deploy \
-            --template-file infrastructure-certificate.yml \
+            --template-file infrastructure-certificate.yaml \
             --region $CERTIFICATE_REGION \
             --s3-bucket "${{ steps.env.outputs.cicd-bucket-certificate }}" \
             --s3-prefix "${NAME}" \
