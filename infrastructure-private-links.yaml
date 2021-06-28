@@ -30,3 +30,8 @@ Resources:
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.secretsmanager'
       SubnetIds: !Ref SubnetIds
       SecurityGroupIds: [ !Ref SecurityGroupId ]
+Outputs:
+  S3PrivateLinkDnsEntries:
+    Value: !GetAtt S3PrivateLink.DnsEntries
+    Export:
+      Name: !Sub "${AWS::StackName}-S3PrivateLinkDnsEntries"
