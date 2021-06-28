@@ -33,6 +33,9 @@ jobs:
           echo ::set-output name=stack-certificate-name::"${ORG}-${ENVIRONMENT}-${NAME}-certificate"
           echo ::set-output name=stack-aurora-name::"${ORG}-${ENVIRONMENT}-${NAME}-aurora"
 
+          PRIVATE_LINKS_STACK=${ORG}-single-${NAME}-private-links # Re-use for all environment due to unique requirements
+          echo ::set-output name=stack-private-links-name::"${PRIVATE_LINKS_STACK}"
+
           ASSUME_ROLE=$(aws sts assume-role \
             --region $AWS_DEFAULT_REGION \
             --output json \
@@ -85,3 +88,24 @@ jobs:
             cloudformation delete-stack --stack-name "${{ steps.env.outputs.stack-certificate-name }}"
           aws --region ${CERTIFICATE_REGION} \
             cloudformation wait stack-delete-complete --stack-name "${{ steps.env.outputs.stack-certificate-name }}"
+      - name: Delete private links
+        run: |
+          PROD_STACK_STATUS=$(aws --output json cloudformation \
+              list-stacks     \
+                  --query "StackSummaries[?StackName=='${{ steps.env.outputs.stack-laravel-name }}'].StackName" \
+                  --stack-status-filter DELETE_COMPLETE \
+                  --max-items 2 | jq -r '.[0] // empty')
+          PROD_STACK_STATUS=${PROD_STACK_STATUS:=404}
+
+          TEST_STACK_STATUS=$(aws --output json cloudformation \
+              list-stacks     \
+                  --query "StackSummaries[?StackName=='rdokos-test-aurora-for-serverless-laravel'].StackName" \
+                  --stack-status-filter DELETE_COMPLETE \
+                  --max-items 2 | jq -r '.[0] // empty' )
+          TEST_STACK_STATUS=${TEST_STACK_STATUS:=404}
+
+          if [ "$PROD_STACK_STATUS" == "404" ] && [ "$TEST_STACK_STATUS" == "404" ]; then
+            aws cloudformation delete-stack --stack-name "${{ steps.env.outputs.stack-private-links-name }}"
+            aws cloudformation wait stack-delete-complete --stack-name "${{ steps.env.outputs.stack-private-links-name }}"
+          fi
+
