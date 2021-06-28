@@ -17,6 +17,8 @@ Parameters:
     Type: List<AWS::EC2::Subnet::Id>
   AuroraStackName:
     Type: String
+  PrivateLinksStackName:
+    Type: String
   SecurityGroupId:
     Type: AWS::EC2::SecurityGroup::Id
 Globals:
@@ -38,7 +40,7 @@ Globals:
         AWS_ENDPOINT: !Join
           - ""
           - - "https://bucket"
-            - !Select [ "1", !Split [ "*", !Select ["0", !GetAtt S3PrivateLink.DnsEntries ] ] ]
+            - !Select [ "1", !Split [ "*", !Select ["0", Fn::ImportValue: !Sub "${PrivateLinksStackName}-S3PrivateLinkDnsEntries" ] ] ]
         AURORA_SECRET_ARN:
           Fn::ImportValue: !Sub "${AuroraStackName}-AuroraSecretsARN"
 
