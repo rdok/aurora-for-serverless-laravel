@@ -163,6 +163,7 @@ jobs:
               AppKey=${APP_KEY} \
               BaseDomainRoute53HostedZoneId=${BASE_DOMAIN_ROUTE_53_HOSTED_ZONE_ID} \
               AuroraStackName="${{ steps.env.outputs.stack-aurora-name }}" \
+              PrivateLinksStackName="${{ steps.env.outputs.stack-private-links-name }}" \
               CertificateStackName="${{ steps.env.outputs.stack-certificate-name }}" \
               SecurityGroupId="${{ steps.env.outputs.security-group-id }}" \
               VpcId="${{ steps.env.outputs.vpc-id }}" \
