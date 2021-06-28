@@ -31,7 +31,7 @@ Resources:
       SubnetIds: !Ref SubnetIds
       SecurityGroupIds: [ !Ref SecurityGroupId ]
 Outputs:
-  S3PrivateLinkDnsEntries:
-    Value: !GetAtt S3PrivateLink.DnsEntries
+  S3PrivateLinkDnsEntry:
+    Value: !Select ["0", Fn::ImportValue: !Sub "${PrivateLinksStackName}-S3PrivateLinkDnsEntries" ]
     Export:
-      Name: !Sub "${AWS::StackName}-S3PrivateLinkDnsEntries"
+      Name: !Sub "${AWS::StackName}-S3PrivateLinkDnsEntry"
