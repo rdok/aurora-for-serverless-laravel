@@ -84,15 +84,6 @@ Resources:
         - AWSSecretsManagerGetSecretValuePolicy:
             SecretArn:
               Fn::ImportValue: !Sub "${AuroraStackName}-AuroraSecretsARN"
-
-  S3PrivateLink:
-    Type: AWS::EC2::VPCEndpoint
-    Properties:
-      VpcId: !Ref VpcId
-      VpcEndpointType: Interface
-      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
-      SubnetIds: !Ref SubnetIds
-      SecurityGroupIds: [ !Ref SecurityGroupId ]
   Assets:
     Type: AWS::S3::Bucket
   AssetsBucketPolicy:
