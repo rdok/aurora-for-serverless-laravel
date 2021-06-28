@@ -40,7 +40,7 @@ Globals:
         AWS_ENDPOINT: !Join
           - ""
           - - "https://bucket"
-            - !Select [ "1", !Split [ "*", !Select ["0", Fn::ImportValue: !Sub "${PrivateLinksStackName}-S3PrivateLinkDnsEntries" ] ] ]
+            - !Select [ "1", !Split [ "*", !Sub "${PrivateLinksStackName}-S3PrivateLinkDnsEntry"] ]
         AURORA_SECRET_ARN:
           Fn::ImportValue: !Sub "${AuroraStackName}-AuroraSecretsARN"
 
