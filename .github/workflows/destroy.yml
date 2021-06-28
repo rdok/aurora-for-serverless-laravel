@@ -71,41 +71,51 @@ jobs:
       - name: Empty storage bucket
         if: ${{ steps.env.outputs.storage-bucket != '404' }}
         run: aws s3 rm --recursive s3://"${{ steps.env.outputs.storage-bucket }}"
+
       - name: Empty assets bucket
         if: ${{ steps.env.outputs.assets-bucket != '404' }}
         run: aws s3 rm --recursive s3://"${{ steps.env.outputs.assets-bucket }}"
+
       - name: Delete Laravel
         run: |
           aws cloudformation delete-stack --stack-name "${{ steps.env.outputs.stack-laravel-name }}"
           aws cloudformation wait stack-delete-complete --stack-name "${{ steps.env.outputs.stack-laravel-name }}"
+
       - name: Delete Aurora
         run: |
           aws cloudformation delete-stack --stack-name "${{ steps.env.outputs.stack-aurora-name }}"
           aws cloudformation wait stack-delete-complete --stack-name "${{ steps.env.outputs.stack-aurora-name }}"
+
       - name: Delete Certificate
         run: |
           aws --region ${CERTIFICATE_REGION} \
             cloudformation delete-stack --stack-name "${{ steps.env.outputs.stack-certificate-name }}"
           aws --region ${CERTIFICATE_REGION} \
             cloudformation wait stack-delete-complete --stack-name "${{ steps.env.outputs.stack-certificate-name }}"
-      - name: Delete private links
+
+      - name: Prepare private links
+        id: env-private-links
         run: |
           PROD_STACK_STATUS=$(aws --output json cloudformation \
-              list-stacks     \
-                  --query "StackSummaries[?StackName=='${{ steps.env.outputs.stack-laravel-name }}'].StackName" \
-                  --stack-status-filter DELETE_COMPLETE \
-                  --max-items 2 | jq -r '.[0] // empty')
-          PROD_STACK_STATUS=${PROD_STACK_STATUS:=404}
+          list-stacks     \
+          --query "StackSummaries[?StackName=='${{ steps.env.outputs.stack-laravel-name }}'].StackName" \
+          --stack-status-filter DELETE_COMPLETE \
+          --max-items 2 | jq -r '.[0] // empty')
+          PROD_STACK_STATUS=${PROD_STACK_STATUS:=DELETE_COMPLETE}
 
           TEST_STACK_STATUS=$(aws --output json cloudformation \
-              list-stacks     \
-                  --query "StackSummaries[?StackName=='rdokos-test-aurora-for-serverless-laravel'].StackName" \
-                  --stack-status-filter DELETE_COMPLETE \
-                  --max-items 2 | jq -r '.[0] // empty' )
-          TEST_STACK_STATUS=${TEST_STACK_STATUS:=404}
+          list-stacks     \
+          --query "StackSummaries[?StackName=='rdokos-test-aurora-for-serverless-laravel'].StackName" \
+          --stack-status-filter DELETE_COMPLETE \
+          --max-items 2 | jq -r '.[0] // empty' )
+          TEST_STACK_STATUS=${TEST_STACK_STATUS:=DELETE_COMPLETE}
 
-          if [ "$PROD_STACK_STATUS" == "404" ] && [ "$TEST_STACK_STATUS" == "404" ]; then
-            aws cloudformation delete-stack --stack-name "${{ steps.env.outputs.stack-private-links-name }}"
-            aws cloudformation wait stack-delete-complete --stack-name "${{ steps.env.outputs.stack-private-links-name }}"
+          if [ "$PROD_STACK_STATUS" == "DELETE_COMPLETE" ] && [ "$TEST_STACK_STATUS" == "DELETE_COMPLETE" ]; then
+            echo ::set-output name=should-delete::"YES"
           fi
 
+      - name: Delete private links
+        if: ${{ steps.env-private-links.outputs.should-delete == 'YES' }}
+        run: |
+            aws cloudformation delete-stack --stack-name "${{ steps.env.outputs.stack-private-links-name }}"
+            aws cloudformation wait stack-delete-complete --stack-name "${{ steps.env.outputs.stack-private-links-name }}"
