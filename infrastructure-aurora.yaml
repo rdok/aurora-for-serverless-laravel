@@ -31,7 +31,7 @@ Resources:
         AutoPause: true
         MinCapacity: 1
         MaxCapacity: 1
-        SecondsUntilAutoPause: 1800 # 30 min
+        SecondsUntilAutoPause: 3600 # 1h
   LinkSecretsToAurora:
     Type: "AWS::SecretsManager::SecretTargetAttachment"
     Properties:
